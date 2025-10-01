@@ -7,4 +7,6 @@ services:
       - ZAPBOT_REDIS_ADDR=localhost:6379
       - ZAPBOT_REDIS_PASSWORD=
       - ZAPBOT_REDIS_DB=0
+      - RULE34_API=12345678
+      - RULE34_USERID=123
 
