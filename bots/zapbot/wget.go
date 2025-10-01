@@ -3,23 +3,21 @@ package zapbot
 import (
 	"fmt"
 
-	"github.com/MarkSmersh/go-telegram/types/general"
-	"github.com/MarkSmersh/go-telegram/types/methods"
+	"github.com/MarkSmersh/go-telegram/core"
 )
 
-func (b *ZapBot) wget(e general.Message) {
+func (b *ZapBot) wget(e core.Message) {
 	if e.ReplyToMessage == nil {
-		b.Tg.SendMessage(methods.SendMessage{
-			Text:   "Reply to message to get information about it.",
-			ChatID: e.Chat.ID,
-		})
-
+		e.Reply("Reply to the message to get information about it.")
 		return
 	}
 
-	b.Tg.SendMessage(methods.SendMessage{
-		Text:      fmt.Sprintf("Message ID: <code>%d</code>\nFrom ID: <code>%d</code>", e.ReplyToMessage.MessageID, e.ReplyToMessage.From.ID),
-		ChatID:    e.Chat.ID,
-		ParseMode: "HTML",
-	})
+	e.Reply(
+		fmt.Sprintf(
+			"Message ID: <code>%d</code>\nChat ID: <code>%d</code>:\nFrom ID: <code>%d</code>\nUsername: @%s",
+			e.ReplyToMessage.Raw().MessageID,
+			e.Chat.Raw().ID,
+			e.ReplyToMessage.Raw().From.ID,
+			b.GetUsername(e.ReplyToMessage.Raw().From.ID)),
+	)
 }

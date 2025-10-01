@@ -3,5 +3,5 @@
 <code>-f</code>, <code>--ban</code>
 To ban for forever
 
-<code>-u</code>, <code>--user-id</code>
-Alternative way to set User ID instead of a reply
+<code>-u</code> <u>userid</u>
+Username or id of the user

@@ -4,6 +4,7 @@ import (
 	"regexp"
 )
 
+// Extracts telegram usernames (@example) from string into array ["example"]
 func FindUsernames(s string) []string {
 	r, _ := regexp.Compile(`@[a-zA-Z_]{5,}`)
 

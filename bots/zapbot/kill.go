@@ -2,115 +2,75 @@ package zapbot
 
 import (
 	"fmt"
-	"strconv"
-	"time"
 
-	"github.com/MarkSmersh/go-telegram/consts"
+	"github.com/MarkSmersh/go-telegram/bots/zapbot/fallbacks"
+	"github.com/MarkSmersh/go-telegram/components/cli"
 	"github.com/MarkSmersh/go-telegram/core"
-	"github.com/MarkSmersh/go-telegram/types/general"
 	"github.com/MarkSmersh/go-telegram/types/methods"
 )
 
-func (b *ZapBot) kill(e general.Message) {
-	if !b.isAdmin(e.Chat, *e.From) {
-		return
-	}
-
-	c, _ := core.StringToCommand(e.Text)
-
-	untilDate := time.Now().UnixMilli() + 60
+func (b *ZapBot) kill(e core.Message) {
+	cli, _ := cli.NewCli(e.Raw().Text)
 
 	target := 0
+	permanent := false
 
 	if e.ReplyToMessage != nil {
-		target = e.ReplyToMessage.From.ID
+		target = e.ReplyToMessage.Raw().From.ID
 	}
 
-	if c.IsArg("f") || c.IsArg("ban") {
-		untilDate = 0
+	if cli.Exists("f") || cli.Exists("ban") {
+		permanent = true
 	}
 
-	if u := c.GetArg("u"); u != "" {
-		t, err := strconv.Atoi(u)
+	user, ok := cli.Get("u")
+
+	if ok {
+		id, err := b.ExtractUserId(user)
 
 		if err != nil {
-			b.Tg.SendMessage(methods.SendMessage{
-				ChatID: e.Chat.ID,
-				Text:   "Value for an option -u is incorrect.",
-			})
+			fallbacks.OptionInvalidValue(e, user)
 			return
 		}
 
-		target = t
-	}
-
-	if u := c.GetArg("user-id"); u != "" {
-		t, err := strconv.Atoi(u)
-
-		if err != nil {
-			b.Tg.SendMessage(methods.SendMessage{
-				ChatID: e.Chat.ID,
-				Text:   "Value for an option --user-id is incorrect",
-			})
-			return
-		}
-
-		target = t
+		target = id
 	}
 
 	if target <= 0 {
-		b.Tg.SendMessage(methods.SendMessage{
-			ChatID: e.Chat.ID,
-			Text:   "Option User ID is missing. Reply to message's owner you want to be banned. Also you can use -u or --user-id to set user'd is manually.",
-		})
+		e.Reply("Option User ID is missing. Reply to message's owner you want to be banned. Also you can use -u or --user-id to set user'd is manually.")
 
 		return
 	}
 
-	m, _ := b.Tg.GetChatMember(methods.GetChatMember{
-		ChatID: e.Chat.ID,
+	victim, _ := b.Tg.GetChatMember(methods.GetChatMember{
+		ChatID: e.Chat.Raw().ID,
 		UserID: target,
 	})
 
-	if m.Status == consts.CREATOR {
-		b.Tg.SendMessage(methods.SendMessage{
-			Text:   "You are cooked.",
-			ChatID: e.Chat.ID,
-		})
+	victim.SetChat(e.Chat)
+
+	if victim.IsCreator() {
+		e.Reply("How about KYS?")
 		return
 	}
 
-	if m.Status == consts.ADMINISTRATOR {
-		b.Tg.SendMessage(methods.SendMessage{
-			Text:   "Admin cannot be killed.",
-			ChatID: e.Chat.ID,
-		})
+	if victim.IsAdmin() {
+		e.Reply("You cannot kill admin.")
 		return
 	}
 
-	_, err := b.Tg.BanChatMember(methods.BanChatMember{
-		ChatID:    e.Chat.ID,
-		UserID:    target,
-		UntilDate: int(untilDate),
-	})
+	var err error
+
+	if permanent {
+		_, err = victim.PermBan()
+		e.Reply(fmt.Sprintf("- Well... done... %s...\n- Farewell, %s.", e.From.Raw().FirstName, victim.Raw().User.FirstName))
+	} else {
+		_, err = victim.Kick()
+		e.Reply(fmt.Sprintf("Killed %s.", victim.Raw().User.FirstName))
+	}
 
 	if err != nil {
-		b.Tg.SendMessage(methods.SendMessage{
-			Text:   fmt.Sprintf("User cannot be removed.\n\n%s", err.Error()),
-			ChatID: e.Chat.ID,
-		})
+		e.Reply(fmt.Sprintf("User cannot be removed.\n\n%s", err.Error()))
 		return
-	}
-
-	if untilDate == 0 {
-		b.Tg.SendMessage(methods.SendMessage{
-			ChatID: e.Chat.ID,
-			Text:   fmt.Sprintf("- Well... done... %s...\n- Farewell, %s.", e.From.FirstName, m.User.FirstName),
-		})
-	} else {
-		b.Tg.SendMessage(methods.SendMessage{
-			ChatID: e.Chat.ID,
-			Text:   fmt.Sprintf("Killed %s.", m.User.FirstName),
-		})
 	}
 }

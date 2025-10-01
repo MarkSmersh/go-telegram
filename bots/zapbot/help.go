@@ -3,20 +3,15 @@ package zapbot
 import (
 	"fmt"
 
-	"github.com/MarkSmersh/go-telegram/types/general"
-	"github.com/MarkSmersh/go-telegram/types/methods"
+	"github.com/MarkSmersh/go-telegram/core"
 )
 
-func (b *ZapBot) help(e general.Message) {
+func (b *ZapBot) help(e core.Message) {
 	commands := ""
 
-	for n, c := range b.Commands {
+	for n, c := range b.CommandsMng.Commands() {
 		commands += fmt.Sprintf("\n<code>%s</code> - <i>%s</i>", n, c.Description)
 	}
 
-	b.Tg.SendMessage(methods.SendMessage{
-		Text:      fmt.Sprintf("Use <b>man</b> <u>command</u> to show a full description.\n%s", commands),
-		ChatID:    e.Chat.ID,
-		ParseMode: "HTML",
-	})
+	e.Reply(fmt.Sprintf("Use <b>man</b> <u>command</u> to show a full description.\n%s", commands))
 }

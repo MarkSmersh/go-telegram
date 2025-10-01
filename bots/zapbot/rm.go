@@ -1,95 +1,98 @@
 package zapbot
 
 import (
+	"encoding/json"
+
+	"github.com/MarkSmersh/go-telegram/bots/zapbot/fallbacks"
+	"github.com/MarkSmersh/go-telegram/components/cli"
 	"github.com/MarkSmersh/go-telegram/core"
-	"github.com/MarkSmersh/go-telegram/types/general"
 	"github.com/MarkSmersh/go-telegram/types/methods"
 )
 
-func (b *ZapBot) rm(e general.Message) {
-	if admin := b.isAdmin(e.Chat, *e.From); !admin {
-		return
-	}
-
-	c, _ := core.StringToCommand(e.Text)
+func (b *ZapBot) rm(e core.Message) {
+	c, _ := cli.NewCli(e.Raw().Text)
 
 	if e.ReplyToMessage != nil {
-		go b.Tg.DeleteMessage(methods.DeleteMessage{
-			MessageID: e.ReplyToMessage.MessageID,
-			ChatID:    e.Chat.ID,
-		})
+		go e.ReplyToMessage.DeleteMessage()
 	}
 
-	if t := c.GetArg("t"); t != "" {
-		min := 1
-		max := 100
-		t, ok := b.optionAtoi(e, t, "t", &min, &max)
+	tailOption, ok := c.Get("t")
+
+	if ok && !tailOption.IsEmpty() {
+		tail, ok := tailOption.AtoiRange(1, 100)
 
 		if !ok {
+			fallbacks.OptionInvalidValue(e, tailOption)
 			return
 		}
 
-		deleted := 0
+		deletedCount := 0
 
 		for i := 1; i <= 1000; i++ {
-			if deleted >= t {
+			if deletedCount >= tail {
 				break
 			}
 
+			// _, err := e.DeleteMessage()
+
 			_, err := b.Tg.DeleteMessage(methods.DeleteMessage{
-				ChatID:    e.Chat.ID,
-				MessageID: e.MessageID - i,
+				ChatID:    e.Raw().Chat.ID,
+				MessageID: e.Raw().MessageID - i,
 			})
 
 			if err == nil {
-				deleted++
+				deletedCount++
 			}
 		}
 	}
 
-	if c.IsArg("s") {
+	startOption, ok := c.Get("s")
+
+	if ok {
+		start, ok := startOption.Atoi()
 		end := 0
 
-		min := 1
-		s, ok := b.optionAtoi(e, c.GetArg("s"), "-s", &min, nil)
-
-		if !ok {
+		if !ok || start < 1 {
+			fallbacks.OptionInvalidValue(e, startOption)
 			return
 		}
 
-		if c.IsArg("e") {
+		endOption, ok := c.Get("e")
 
-			endOpt, ok := b.optionAtoi(e, c.GetArg("e"), "-e", &min, nil)
+		if ok {
+			end, ok = endOption.Atoi()
 
-			if ok {
-				end = endOpt
+			if !ok {
+				fallbacks.OptionInvalidValue(e, endOption)
+				return
 			}
-		}
 
-		if end != 0 && s >= end {
-			b.Tg.SendMessage(methods.SendMessage{
-				Text:      "The value of the option <code>-e</code> must be higher than the value of the option <code>-s</code>",
-				ChatID:    e.Chat.ID,
-				ParseMode: "HTML",
-			})
-
-			return
+			if end != 0 && end <= start {
+				e.Reply("The value of the option <code>-e</code> must be higher than the value of the option <code>-s</code>")
+				return
+			}
 		}
 
 		if end == 0 {
-			end = e.MessageID - 1
+			end = e.Raw().MessageID - 1
 		}
 
-		for i := s; i <= end; i++ {
-			go b.Tg.DeleteMessage(methods.DeleteMessage{
-				ChatID:    e.Chat.ID,
-				MessageID: i,
+		// TODO: end
+		for i := start; i <= end; i = i + 100 {
+			messages := []int{}
+
+			for j := range end - i + 1 {
+				messages = append(messages, i+j)
+			}
+
+			jsonMessages, _ := json.Marshal(messages)
+
+			go b.Tg.DeleteMessages(methods.DeleteMessages{
+				ChatID:     e.Chat.Raw().ID,
+				MessageIDs: string(jsonMessages),
 			})
 		}
-
 	}
-	b.Tg.DeleteMessage(methods.DeleteMessage{
-		MessageID: e.MessageID,
-		ChatID:    e.Chat.ID,
-	})
+
+	e.DeleteMessage()
 }

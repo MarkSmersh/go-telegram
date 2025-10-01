@@ -4,21 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/MarkSmersh/go-telegram/types/general"
-	"github.com/MarkSmersh/go-telegram/types/methods"
+	"github.com/MarkSmersh/go-telegram/core"
 )
 
-func (b *ZapBot) ping(e general.Message) {
+func (b *ZapBot) ping(m core.Message) {
 	t := time.Now().UnixMilli()
 
-	m, _ := b.Tg.SendMessage(methods.SendMessage{
-		Text:   "Ping...",
-		ChatID: e.Chat.ID,
-	})
-
-	b.Tg.EditMessageText(methods.EditMessageText{
-		Text:      fmt.Sprintf("Pong: %dms", time.Now().UnixMilli()-t),
-		MessageID: m.MessageID,
-		ChatID:    e.Chat.ID,
-	})
+	b.Tg.GetMe()
+	m.Reply(fmt.Sprintf("Pong: %dms", time.Now().UnixMilli()-t))
 }

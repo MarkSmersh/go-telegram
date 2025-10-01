@@ -1,4 +1,4 @@
-package core
+package components
 
 type State[K string | int, V any] struct {
 	States map[K]V

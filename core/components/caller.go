@@ -1,4 +1,4 @@
-package core
+package components
 
 type Caller[T any] struct {
 	Calls []func(T)

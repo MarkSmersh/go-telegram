@@ -1,0 +1,10 @@
+services:
+  zapbot:
+    restart: unless-stopped
+    image: zapbot
+    environment:
+      - ZAPBOT_TOKEN=123:ABC
+      - ZAPBOT_REDIS_ADDR=localhost:6379
+      - ZAPBOT_REDIS_PASSWORD=
+      - ZAPBOT_REDIS_DB=0
+

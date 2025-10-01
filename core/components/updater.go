@@ -1,4 +1,4 @@
-package core
+package components
 
 import (
 	"github.com/MarkSmersh/go-telegram/types/general"

@@ -2,30 +2,32 @@ package core
 
 import (
 	"testing"
+
+	"github.com/MarkSmersh/go-telegram/components/cli"
 )
 
-func TestStringToCommand(t *testing.T) {
-	c, _ := StringToCommand("command")
+func TestNewCli(t *testing.T) {
+	c, _ := cli.NewCli("command")
 
 	if c.Entry != "command" {
-		t.Errorf(`StringToCommand("command"), want command, got %s`, c.Etc)
+		t.Errorf(`NewCli("command"), want command, got %s`, c.Etc)
 	}
 
-	c, _ = StringToCommand("command -f")
+	c, _ = cli.NewCli("command -f")
 
-	if !c.IsArg("f") {
-		t.Errorf(`StringToCommand("command -f"), want true, got false`)
+	if _, ok := c.Get("f"); !ok {
+		t.Errorf(`NewCli("command -f"), want true, got false`)
 	}
 
-	c, _ = StringToCommand("command -f arg1")
+	c, _ = cli.NewCli("command -f arg1")
 
-	if arg := c.GetArg("f"); arg != "arg1" {
-		t.Errorf(`StringToCommand("command -f arg1"), want arg1, got %s`, arg)
+	if arg, _ := c.Get("f"); arg.Value != "arg1" {
+		t.Errorf(`NewCli("command -f arg1"), want arg1, got %s`, arg)
 	}
 
-	c, _ = StringToCommand("command -f arg1 -fd arg2 -fd=arg3 etc")
+	c, _ = cli.NewCli("command -f arg1 -fd arg2 -fd=arg3 etc")
 
 	if etc := c.Etc; etc != "etc" {
-		t.Errorf(`StringToCommand("command -f arg1 etc"), want etc, got %s`, etc)
+		t.Errorf(`NewCli("command -f arg1 etc"), want etc, got %s`, etc)
 	}
 }

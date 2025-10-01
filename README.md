@@ -12,9 +12,9 @@ TODO:
 - [x] `man` - for manual
 - [x] `ping` - to ping
 - [x] `help` - to show all commands without details
+- [x] `write` - to write a message that only a provided user can see
 - [ ] `chown` - to show admins with their permissons
 - [ ] `export` - to pin message
-- [ ] `write` - to write a message that only a provided user can see
 - [ ] `touch` - to touch smb
 - [ ] `whoami` - manage user's description
 - [ ] `whois` - to show a provided user's description

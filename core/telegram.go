@@ -11,16 +11,24 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/MarkSmersh/go-telegram/core/components"
 	"github.com/MarkSmersh/go-telegram/types/general"
 	"github.com/MarkSmersh/go-telegram/types/methods"
 )
 
 type Telegram struct {
 	Token   string
-	Eventer Updater
+	Eventer components.Updater
 }
 
-func (t *Telegram) Init(callback func(e general.User)) {
+func NewTelegram(token string) Telegram {
+	return Telegram{
+		Token:   token,
+		Eventer: components.Updater{},
+	}
+}
+
+func (t *Telegram) Init(callback func(e User)) {
 	if callback != nil {
 		me, _ := t.GetMe()
 		callback(me)
@@ -122,32 +130,32 @@ func (t *Telegram) Request(method string, params any) ([]byte, error) {
 	return resultBytes, err
 }
 
-func (t *Telegram) GetMe() (general.User, error) {
+func (t *Telegram) GetMe() (User, error) {
 	result, err := t.Request("getMe", nil)
 	data := general.User{}
 	json.Unmarshal(result, &data)
-	return data, err
+	return t.NewUser(data), err
 }
 
-func (t *Telegram) SendMessage(params methods.SendMessage) (general.Message, error) {
+func (t *Telegram) SendMessage(params methods.SendMessage) (Message, error) {
 	result, err := t.Request("sendMessage", params)
 	data := general.Message{}
 	json.Unmarshal(result, &data)
-	return data, err
+	return t.NewMessage(data), err
 }
 
-func (t *Telegram) ForwardMessage(params methods.ForwardMessage) (general.Message, error) {
+func (t *Telegram) ForwardMessage(params methods.ForwardMessage) (Message, error) {
 	result, err := t.Request("forwardMessage", params)
 	data := general.Message{}
 	json.Unmarshal(result, &data)
-	return data, err
+	return t.NewMessage(data), err
 }
 
-func (t *Telegram) CopyMessage(params methods.CopyMessage) (general.Message, error) {
+func (t *Telegram) CopyMessage(params methods.CopyMessage) (Message, error) {
 	result, err := t.Request("copyMessage", params)
 	data := general.Message{}
 	json.Unmarshal(result, &data)
-	return data, err
+	return t.NewMessage(data), err
 }
 
 func (t *Telegram) GetUpdates(params methods.GetUpdates) ([]general.Update, error) {
@@ -157,18 +165,18 @@ func (t *Telegram) GetUpdates(params methods.GetUpdates) ([]general.Update, erro
 	return data, err
 }
 
-func (t *Telegram) EditMessageText(params methods.EditMessageText) (general.Message, error) {
+func (t *Telegram) EditMessageText(params methods.EditMessageText) (Message, error) {
 	result, err := t.Request("editMessageText", params)
 	data := general.Message{}
 	json.Unmarshal(result, &data)
-	return data, err
+	return t.NewMessage(data), err
 }
 
-func (t *Telegram) EditMessageReplyMarkup(params methods.EditMessageReplyMarkup) (general.Message, error) {
+func (t *Telegram) EditMessageReplyMarkup(params methods.EditMessageReplyMarkup) (Message, error) {
 	result, err := t.Request("editMessageReplyMarkup", params)
 	data := general.Message{}
 	json.Unmarshal(result, &data)
-	return data, err
+	return t.NewMessage(data), err
 }
 
 func (t *Telegram) AnswerCallbackQuery(params methods.AnswerCallbackQuery) error {
@@ -183,11 +191,18 @@ func (t *Telegram) DeleteMessage(params methods.DeleteMessage) (bool, error) {
 	return data, err
 }
 
-func (t *Telegram) GetChatMember(params methods.GetChatMember) (general.ChatMember, error) {
+func (t *Telegram) DeleteMessages(params methods.DeleteMessages) (bool, error) {
+	result, err := t.Request("deleteMessages", params)
+	data := false
+	json.Unmarshal(result, &data)
+	return data, err
+}
+
+func (t *Telegram) GetChatMember(params methods.GetChatMember) (ChatMember, error) {
 	result, err := t.Request("getChatMember", params)
 	data := general.ChatMember{}
 	json.Unmarshal(result, &data)
-	return data, err
+	return t.NewChatMember(data, nil), err
 }
 
 func (t *Telegram) BanChatMember(params methods.BanChatMember) (bool, error) {
