@@ -225,3 +225,24 @@ func (t *Telegram) GetChat(params methods.GetChat) (general.ChatFullInfo, error)
 	json.Unmarshal(result, &data)
 	return data, err
 }
+
+func (t *Telegram) SendPhoto(params methods.SendPhoto) (Message, error) {
+	result, err := t.Request("sendPhoto", params)
+	data := general.Message{}
+	json.Unmarshal(result, &data)
+	return t.NewMessage(data), err
+}
+
+func (t *Telegram) SendMediaGroup(params methods.SendMediaGroup) ([]Message, error) {
+	result, err := t.Request("sendMediaGroup", params)
+	data := []general.Message{}
+	json.Unmarshal(result, &data)
+
+	messages := []Message{}
+
+	for _, m := range data {
+		messages = append(messages, t.NewMessage(m))
+	}
+
+	return messages, err
+}

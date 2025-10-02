@@ -65,8 +65,6 @@ func (r Rule34) Request(method string, params any) ([]byte, error) {
 
 	body, err := io.ReadAll(res.Body)
 
-	slog.Debug(string(body))
-
 	if err != err {
 		slog.Error(err.Error())
 		return []byte{}, err

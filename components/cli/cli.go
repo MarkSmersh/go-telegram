@@ -16,7 +16,7 @@ func NewCli(s string) (Cli, bool) {
 	c := Cli{}
 
 	commandRegex, _ := regexp.Compile(`([a-z0-9]{2,}) ?((?: ?(?:(?:--|-)[a-zA-Z-]+(?:[ |=][a-zA-Z0-9@-_]+)?))*) ?([^\n]*)`)
-	argsRegex, _ := regexp.Compile(`(?: ?(?:(?:--|-)([a-zA-Z]+)(?:[ |=]([^ ]+))?))`)
+	argsRegex, _ := regexp.Compile(`(?: ?(?:(?:--|-)([a-zA-Z]+)(?:[ |=]([^ -]+))?))`)
 
 	argsFromCli := commandRegex.FindAllStringSubmatch(s, -1)
 

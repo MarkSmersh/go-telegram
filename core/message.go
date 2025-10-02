@@ -111,6 +111,13 @@ func (m Message) GetChatMember() (ChatMember, error) {
 	return chatMember, err
 }
 
+func (m Message) SendMediaGroup(mediaBuilder InputMediaBuilder) ([]Message, error) {
+	return m.tg.SendMediaGroup(methods.SendMediaGroup{
+		ChatID: m.Chat.Raw().ID,
+		Media:  mediaBuilder.ToJSON(),
+	})
+}
+
 func (m Message) Raw() general.Message {
 	return m.raw
 }
