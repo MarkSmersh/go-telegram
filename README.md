@@ -23,3 +23,5 @@ TODO:
 - [ ] `uname` - to show info about the chat
 - [ ] `exit` - for ?
 - [ ] `history` - for overall statistics
+
+Write descriptions and add examples for each command

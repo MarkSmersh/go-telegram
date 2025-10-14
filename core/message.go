@@ -12,9 +12,10 @@ import (
 )
 
 type Message struct {
-	raw       general.Message
-	tg        Telegram
-	parseMode string
+	raw                general.Message
+	tg                 Telegram
+	parseMode          string
+	disableLinkPreview bool
 
 	From *User `json:"from,omitempty"`
 	// SenderChat        *Chat    `json:"sender_chat,omitempty"`
@@ -30,9 +31,10 @@ func (t Telegram) NewMessage(raw general.Message) Message {
 	// TODO: Add these and others models
 
 	msg := Message{
-		raw:       raw,
-		tg:        t,
-		parseMode: "",
+		raw:                raw,
+		tg:                 t,
+		parseMode:          "",
+		disableLinkPreview: false,
 
 		// From:           &from,
 		// Chat:           chat,
@@ -65,6 +67,9 @@ func (m Message) Reply(text string) (Message, error) {
 		Text:      text,
 		ParseMode: m.parseMode,
 		ChatID:    m.Chat.Raw().ID,
+		LinkPreviewOptions: &general.LinkPreviewOptions{
+			IsDisabled: m.disableLinkPreview,
+		},
 	})
 
 	return msg, err
@@ -116,6 +121,14 @@ func (m Message) SendMediaGroup(mediaBuilder InputMediaBuilder) ([]Message, erro
 		ChatID: m.Chat.Raw().ID,
 		Media:  mediaBuilder.ToJSON(),
 	})
+}
+
+func (m *Message) DisableLinkPreview() {
+	m.disableLinkPreview = true
+}
+
+func (m *Message) EnableLinkPreview() {
+	m.disableLinkPreview = false
 }
 
 func (m Message) Raw() general.Message {

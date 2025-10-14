@@ -93,7 +93,21 @@ func (t *Telegram) Request(method string, params any) ([]byte, error) {
 		d.Decode(&paramsMap)
 
 		for k, v := range paramsMap {
-			paramsValues.Add(k, fmt.Sprintf("%v", v))
+			var value string
+
+			switch v.(type) {
+			case int:
+				value, _ = v.(string)
+				break
+			case string:
+				value, _ = v.(string)
+				break
+			default:
+				temp, _ := v.(any)
+				valueBytes, _ := json.Marshal(temp)
+				value = string(valueBytes)
+			}
+			paramsValues.Add(k, string(value))
 		}
 	}
 
@@ -101,8 +115,8 @@ func (t *Telegram) Request(method string, params any) ([]byte, error) {
 
 	res, err := http.Get(url)
 
-	if err != err {
-		log.Println(err)
+	if err != nil {
+		slog.Error(err.Error())
 		return []byte{}, err
 	}
 

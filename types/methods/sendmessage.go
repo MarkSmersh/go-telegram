@@ -9,11 +9,11 @@ type SendMessage struct {
 	MessageThreadID      int    `json:"message_thread_id,omitempty"`      // Optional forum thread ID
 	ParseMode            string `json:"parse_mode,omitempty"`             // Optional formatting mode
 	// Entities             *[]MessageEntity    `json:"entities,omitempty"`               // Optional list of special entities
-	// LinkPreviewOptions   *LinkPreviewOptions `json:"link_preview_options,omitempty"`   // Optional link preview controls
-	DisableNotification bool                     `json:"disable_notification,omitempty"` // Optional silent send
-	ProtectContent      bool                     `json:"protect_content,omitempty"`      // Optional forward protection
-	AllowPaidBroadcast  bool                     `json:"allow_paid_broadcast,omitempty"` // Optional override broadcast limits
-	MessageEffectID     string                   `json:"message_effect_id,omitempty"`    // Optional special effect ID (private chats only)
-	ReplyParameters     *general.ReplyParameters `json:"reply_parameters,omitempty"`     // Optional reply meta
-	ReplyMarkup         string                   `json:"reply_markup,omitempty"`         // InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply
+	LinkPreviewOptions  *general.LinkPreviewOptions `json:"link_preview_options,omitempty"` // Optional link preview controls
+	DisableNotification bool                        `json:"disable_notification,omitempty"` // Optional silent send
+	ProtectContent      bool                        `json:"protect_content,omitempty"`      // Optional forward protection
+	AllowPaidBroadcast  bool                        `json:"allow_paid_broadcast,omitempty"` // Optional override broadcast limits
+	MessageEffectID     string                      `json:"message_effect_id,omitempty"`    // Optional special effect ID (private chats only)
+	ReplyParameters     *general.ReplyParameters    `json:"reply_parameters,omitempty"`     // Optional reply meta
+	ReplyMarkup         string                      `json:"reply_markup,omitempty"`         // InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply
 }

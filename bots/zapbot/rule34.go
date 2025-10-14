@@ -112,13 +112,21 @@ func (b ZapBot) rule34(e core.Message) {
 			math.Min(1000, float64(len(p.Tags))),
 		)
 
+		if p.Height > 8192 {
+			continue
+		}
+
 		media.AddPhoto(general.InputMediaPhoto{
 			Type:       "photo",
-			Media:      p.FileURL,
+			Media:      p.SampleURL,
 			Caption:    p.Tags[:postTagsLen],
 			HasSpoiler: true,
 		})
 	}
 
-	e.SendMediaGroup(media)
+	_, err := e.SendMediaGroup(media)
+
+	if err != nil {
+		fallbacks.ApiError(e, "One or many photos are unavailable", err.Error())
+	}
 }

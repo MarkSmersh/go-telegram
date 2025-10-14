@@ -72,3 +72,11 @@ func (o Option) Is(conditions ...bool) int {
 
 	return -1
 }
+
+func (o Option) Exists() bool {
+	if len(o.Prefix) <= 0 {
+		return false
+	} else {
+		return true
+	}
+}

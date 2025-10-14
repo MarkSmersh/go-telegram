@@ -92,9 +92,24 @@ func (b *ZapBot) RegisterCommands() {
 
 	b.CommandsMng.RegisterCommand(
 		"rule34",
-		"finds a superiour content by tags (beta)",
+		"finds a superiour content by tags",
 		b.rule34,
 		manuals["rule34"],
+	)
+
+	b.CommandsMng.RegisterCommand(
+		"export",
+		"creates a new variable with a given value",
+		b.export,
+		manuals["export"],
+		middleware.IsAdmin,
+	)
+
+	b.CommandsMng.RegisterCommand(
+		"echo",
+		"displays a value of a given variable",
+		b.echo,
+		manuals["echo"],
 	)
 }
 
