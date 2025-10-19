@@ -2,6 +2,7 @@ package zapbot
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/MarkSmersh/go-telegram/bots/zapbot/fallbacks"
 	"github.com/MarkSmersh/go-telegram/components/cli"
@@ -14,6 +15,21 @@ func (b *ZapBot) kill(e core.Message) {
 
 	target := 0
 	permanent := false
+
+	if cli.Exists("a") {
+		e.Reply("GROUP WILL BE WIPED IN 30 SECONDS.")
+
+		for i := 30; i > 0; i-- {
+			e.Reply(
+				fmt.Sprintf("%d...", i),
+			)
+			time.Sleep(1 * time.Second)
+		}
+
+		e.Reply("...THY END IS NOW")
+
+		return
+	}
 
 	if e.ReplyToMessage != nil {
 		target = e.ReplyToMessage.Raw().From.ID
