@@ -2,7 +2,7 @@ package methods
 
 type AnswerInlineQuery struct {
 	InlineQueryID string                    `json:"inline_query_id"`
-	Results       string                    `json:"results"`
+	Results       []any                     `json:"results"`
 	CacheTime     int                       `json:"cache_time,omitempty"`
 	IsPersonal    bool                      `json:"is_personal,omitempty"`
 	NextOffset    string                    `json:"next_offset,omitempty"`

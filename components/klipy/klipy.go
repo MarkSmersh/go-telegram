@@ -23,22 +23,8 @@ func NewKlipy(token string) Klipy {
 	}
 }
 
-// func genericRequest[R, P any, M string](f func(M, P) ([]byte, error), method M, params P) (R, error) {
-// 	var res R
-//
-// 	data, err := f(method, params)
-//
-// 	if err != nil {
-// 		return res, err
-// 	}
-//
-// 	json.Unmarshal(data, &res)
-//
-// 	return res, nil
-// }
-
-func genericRequest[R any](data []byte, err error) (R, error) {
-	var res R
+func genericRequest[R any](data []byte, err error) (general.PageData[R], error) {
+	var res general.PageData[R]
 
 	if err != nil {
 		return res, err
@@ -49,13 +35,11 @@ func genericRequest[R any](data []byte, err error) (R, error) {
 	return res, nil
 }
 
-func (k Klipy) Search(params methods.Search) ([]general.Item, error) {
+func (k Klipy) Search(params methods.Search) (general.PageData[[]general.Item], error) {
 	return genericRequest[[]general.Item](k.Request("search", params))
 }
 
 func (k Klipy) Request(method string, params any) ([]byte, error) {
-	// https://api.klipy.com/api/v1/{app_key}/gifs/search?page={page}&per_page={per_page}&q={q}&customer_id={customer_id}&locale={country_code}&content_filter={content_filter}
-
 	paramsValues := url.Values{}
 
 	if params != nil {
@@ -76,12 +60,9 @@ func (k Klipy) Request(method string, params any) ([]byte, error) {
 
 	url := fmt.Sprintf(
 		"https://api.klipy.com/api/v1/%s/gifs/search?%s",
-
 		k.token,
 		paramsValues.Encode(),
 	)
-
-	slog.Debug(url)
 
 	res, err := http.Get(url)
 
@@ -100,7 +81,7 @@ func (k Klipy) Request(method string, params any) ([]byte, error) {
 
 	json.Unmarshal(data, &r)
 
-	data = r.Data.Data
+	data = r.Data
 
 	return data, nil
 }

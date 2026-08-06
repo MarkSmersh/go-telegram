@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
 
 	"github.com/MarkSmersh/go-telegram/components/klipy"
 	"github.com/MarkSmersh/go-telegram/components/klipy/types/methods"
@@ -26,10 +27,12 @@ func (k KlipyBot) Init() {
 	klipy := klipy.NewKlipy(os.Getenv("KLIPY_API"))
 
 	k.tg.Eventer.InlineQuery.Add(func(iq general.InlineQuery) {
-		slog.Debug(iq.Query)
+		page, _ := strconv.Atoi(iq.Offset)
 
 		res, err := klipy.Search(methods.Search{
-			Q: iq.Query,
+			Q:       iq.Query,
+			PerPage: 50,
+			Page:    page,
 		})
 
 		if err != nil {
@@ -37,16 +40,21 @@ func (k KlipyBot) Init() {
 			return
 		}
 
-		slog.Debug(fmt.Sprintf("RESPONSE: %d", len(res)))
-
 		ib := core.NewInlineBuilder(iq.ID)
+		ib.AnswerInlineQuery.CacheTime = 60
 
-		for _, r := range res {
-			ib.AddGIF(core.InlineQueryResultMpeg4Gif{
-				Type:         "mpeg4_gif",
-				ID:           fmt.Sprintf("%d", r.ID),
-				Mpeg4URL:     r.File.MD.GIF.URL,
-				ThumbnailURL: r.File.XS.GIF.URL,
+		ib.AnswerInlineQuery.NextOffset = fmt.Sprintf("%d", res.CurrentPage+1)
+
+		for _, r := range res.Data {
+			ib.AddGIF(core.InlineQueryResultGif{
+				Type:              "gif",
+				ID:                fmt.Sprintf("%d", r.ID),
+				GifURL:            r.File.HD.MP4.URL,
+				ThumbnailURL:      r.File.XS.JPG.URL,
+				Title:             r.Title,
+				ThumbnailMimeType: "image/jpeg",
+				GifWidth:          r.File.XS.GIF.Width,
+				GifHeight:         r.File.XS.GIF.Height,
 			})
 		}
 
@@ -55,10 +63,6 @@ func (k KlipyBot) Init() {
 		if err != nil {
 			slog.Error(err.Error())
 		}
-	})
-
-	k.tg.Eventer.Messages.Add(func(m general.Message) {
-		k.tg.NewMessage(m).Reply(m.Text)
 	})
 
 	k.tg.Init(func(e core.User) {

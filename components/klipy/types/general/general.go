@@ -3,15 +3,15 @@ package general
 import "encoding/json"
 
 type Response struct {
-	Result bool     `json:"result"`
-	Data   PageData `json:"data"`
+	Result bool            `json:"result"`
+	Data   json.RawMessage `json:"data"`
 }
 
-type PageData struct {
-	Data        json.RawMessage `json:"data"`
-	CurrentPage int             `json:"current_page"`
-	PerPage     int             `json:"per_page"`
-	HasNext     bool            `json:"has_next"`
+type PageData[T any] struct {
+	Data        T    `json:"data"`
+	CurrentPage int  `json:"current_page"`
+	PerPage     int  `json:"per_page"`
+	HasNext     bool `json:"has_next"`
 }
 
 type Item struct {

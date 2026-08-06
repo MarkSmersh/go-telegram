@@ -1,17 +1,11 @@
 package core
 
 import (
-	"encoding/json"
-	"fmt"
-	"log/slog"
-
 	"github.com/MarkSmersh/go-telegram/types/methods"
 )
 
 type InlineBuilder struct {
 	methods.AnswerInlineQuery
-	// gifs []InlineQueryResultMpeg4Gif
-	objects []any
 }
 
 func NewInlineBuilder(id string) InlineBuilder {
@@ -20,6 +14,10 @@ func NewInlineBuilder(id string) InlineBuilder {
 			InlineQueryID: id,
 		},
 	}
+}
+
+func (b *InlineBuilder) addResult(obj any) {
+	b.Results = append(b.Results, obj)
 }
 
 type InlineQueryResultMpeg4Gif struct {
@@ -40,20 +38,28 @@ type InlineQueryResultMpeg4Gif struct {
 	// InputMessageContent    InputMessageContent    `json:"input_message_content,omitempty"`
 }
 
-func (b *InlineBuilder) addObject(obj any) {
-	b.objects = append(b.objects, obj)
-
-	encoded, err := json.Marshal(b.objects)
-
-	if err != nil {
-		slog.Error(err.Error())
-	}
-
-	b.Results = string(encoded)
-
-	slog.Debug(fmt.Sprintf("END: %d", len(b.objects)))
+func (b *InlineBuilder) AddMpeg(mpeg InlineQueryResultMpeg4Gif) {
+	b.addResult(mpeg)
 }
 
-func (b *InlineBuilder) AddGIF(gif InlineQueryResultMpeg4Gif) {
-	b.addObject(gif)
+type InlineQueryResultGif struct {
+	Type              string `json:"type"` // must be "gif"
+	ID                string `json:"id"`
+	GifURL            string `json:"gif_url"`
+	GifWidth          int    `json:"gif_width,omitempty"`
+	GifHeight         int    `json:"gif_height,omitempty"`
+	GifDuration       int    `json:"gif_duration,omitempty"`
+	ThumbnailURL      string `json:"thumbnail_url"`
+	ThumbnailMimeType string `json:"thumbnail_mime_type,omitempty"`
+	Title             string `json:"title,omitempty"`
+	Caption           string `json:"caption,omitempty"`
+	ParseMode         string `json:"parse_mode,omitempty"`
+	// CaptionEntities        []MessageEntity        `json:"caption_entities,omitempty"`
+	ShowCaptionAboveMedia bool `json:"show_caption_above_media,omitempty"`
+	// ReplyMarkup            *InlineKeyboardMarkup  `json:"reply_markup,omitempty"`
+	// InputMessageContent    InputMessageContent    `json:"input_message_content,omitempty"`
+}
+
+func (b *InlineBuilder) AddGIF(gif InlineQueryResultGif) {
+	b.addResult(gif)
 }

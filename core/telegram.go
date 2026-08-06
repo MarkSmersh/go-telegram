@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -8,9 +9,7 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"os"
-	"strings"
 
 	"github.com/MarkSmersh/go-telegram/core/components"
 	"github.com/MarkSmersh/go-telegram/types/general"
@@ -88,43 +87,14 @@ func (t *Telegram) Polling() {
 }
 
 func (t *Telegram) Request(method string, params any) ([]byte, error) {
-	paramsValues := url.Values{}
 
-	if params != nil {
-		var paramsMap map[string]any
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/%s", t.Token, method)
 
-		tmp, _ := json.Marshal(params)
+	reqBody, _ := json.Marshal(params)
 
-		d := json.NewDecoder(strings.NewReader(string(tmp[:])))
+	// slog.Debug(string(reqBody))
 
-		d.UseNumber()
-
-		d.Decode(&paramsMap)
-
-		for k, v := range paramsMap {
-			var value string
-
-			switch v.(type) {
-			case int:
-				value, _ = v.(string)
-				break
-			case string:
-				value, _ = v.(string)
-				break
-			default:
-				temp, _ := v.(any)
-				valueBytes, _ := json.Marshal(temp)
-				value = string(valueBytes)
-			}
-			paramsValues.Add(k, string(value))
-		}
-	}
-
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/%s?%s", t.Token, method, paramsValues.Encode())
-
-	slog.Debug(url)
-
-	res, err := http.Get(url)
+	res, err := http.Post(url, "application/json", bytes.NewBuffer(reqBody))
 
 	if err != nil {
 		slog.Error(err.Error())
