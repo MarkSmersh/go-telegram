@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/MarkSmersh/go-telegram/core/components"
@@ -30,7 +31,13 @@ func NewTelegram(token string) Telegram {
 
 func (t *Telegram) Init(callback func(e User)) {
 	if callback != nil {
-		me, _ := t.GetMe()
+		me, err := t.GetMe()
+
+		if err != nil {
+			slog.Error(err.Error())
+			os.Exit(1)
+		}
+
 		callback(me)
 	}
 	t.Polling()
@@ -48,6 +55,8 @@ func (t *Telegram) Polling() {
 
 		for i := range updates {
 			u := updates[i]
+
+			// slog.Debug(u.InlineQuery.Query)
 
 			if u.Message != nil {
 				e := u.Message
@@ -113,6 +122,8 @@ func (t *Telegram) Request(method string, params any) ([]byte, error) {
 
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/%s?%s", t.Token, method, paramsValues.Encode())
 
+	slog.Debug(url)
+
 	res, err := http.Get(url)
 
 	if err != nil {
@@ -144,18 +155,27 @@ func (t *Telegram) Request(method string, params any) ([]byte, error) {
 	return resultBytes, err
 }
 
+func genericRequest[R any](data []byte, err error) (R, error) {
+	var res R
+
+	if err != nil {
+		slog.Error(err.Error())
+		return res, err
+	}
+
+	json.Unmarshal(data, &res)
+
+	return res, nil
+}
+
 func (t *Telegram) GetMe() (User, error) {
-	result, err := t.Request("getMe", nil)
-	data := general.User{}
-	json.Unmarshal(result, &data)
-	return t.NewUser(data), err
+	res, err := genericRequest[general.User](t.Request("getMe", nil))
+	return t.NewUser(res), err
 }
 
 func (t *Telegram) SendMessage(params methods.SendMessage) (Message, error) {
-	result, err := t.Request("sendMessage", params)
-	data := general.Message{}
-	json.Unmarshal(result, &data)
-	return t.NewMessage(data), err
+	res, err := genericRequest[general.Message](t.Request("sendMessage", params))
+	return t.NewMessage(res), err
 }
 
 func (t *Telegram) ForwardMessage(params methods.ForwardMessage) (Message, error) {
@@ -259,4 +279,8 @@ func (t *Telegram) SendMediaGroup(params methods.SendMediaGroup) ([]Message, err
 	}
 
 	return messages, err
+}
+
+func (t *Telegram) AnswerInlineQuery(params methods.AnswerInlineQuery) (bool, error) {
+	return genericRequest[bool](t.Request("answerInlineQuery", params))
 }
